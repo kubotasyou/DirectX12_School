@@ -1,17 +1,24 @@
 #include <Windows.h>
-
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <vector>
-
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 
 #include "DirectXManager.h"
+#include "Create2DFigure.h"
+
+
+//今回追加
+////数学ライブラリのインクルード
+//#include <DirectXMath.h>
+//using namespace DirectX;
+////D3Dコンパイラのインクルード
+//#include <d3dcompiler.h>
+//#pragma comment(lib, "d3dcompiler.lib")
+
 
 using namespace std;
-
-
 
 //ウィンドウクラスの設定
 WNDCLASSEX w{};
@@ -19,6 +26,12 @@ WNDCLASSEX w{};
 const int window_width = 1280;
 const int window_height = 720;
 HWND hwnd;
+
+
+//今回クラス化しててなかったやつ
+//HRESULT result;
+//ID3D12Device* _dev = nullptr;
+//ID3D12GraphicsCommandList* _cmdList = nullptr;
 
 
 //ウィンドウプロシージャ作成
@@ -57,202 +70,259 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	DirectXManager* dxManager = new DirectXManager();
 	dxManager->Initialize(hwnd);
 
-//	HRESULT result;
-//	ID3D12Device* _dev = nullptr;
-//	IDXGIFactory6* _dxgiFactory = nullptr;
-//	IDXGISwapChain4* _swapchain = nullptr;
-//	ID3D12CommandAllocator* _cmdAllocator = nullptr;
-//	ID3D12GraphicsCommandList* _cmdList = nullptr;
-//	//コマンドリストにたまった命令をGPUに順番に実行させる仕組み
-//	ID3D12CommandQueue* _cmdQueue = nullptr;
-//	ID3D12DescriptorHeap* _rtvHeaps = nullptr;//RenderTargetViewHeap
+	Create2DFigure* _create2D =
+		new Create2DFigure(dxManager->GetDev(), dxManager->getCmdList());
+
+
+	//今回追加
+//#pragma region 描画初期化処理
 //
-//#pragma region グラフィックボードのアダプタを列挙
-//
-//	//DXGIファクトリーの生成
-//	result = CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory));
-//
-//	//アダプターの列挙用
-//	vector<IDXGIAdapter*> _adapters;
-//
-//	//アダプターオブジェクトを格納する変数
-//	IDXGIAdapter* _tmpAdapter = nullptr;
-//
-//	for (int i = 0;
-//		_dxgiFactory->EnumAdapters(i, &_tmpAdapter) != DXGI_ERROR_NOT_FOUND;
-//		i++)
+//	//頂点データ(3頂点分の座標)
+//	XMFLOAT3 vertices[] =
 //	{
-//		//利用可能なアダプターを格納する
-//		_adapters.push_back(_tmpAdapter);
-//	}
-//
-//	for (int i = 0; i < _adapters.size(); i++)
-//	{
-//		//アダプターの設定構造体
-//		DXGI_ADAPTER_DESC adDesc{};//AdapterDesc
-//
-//		//アダプターの情報を取得
-//		_adapters[i]->GetDesc(&adDesc);
-//
-//		//アダプター名
-//		wstring strDesc = adDesc.Description;
-//
-//		//探したいアダプターの名前を確認
-//		if (strDesc.find(L"NAVIDATA") != string::npos)
-//		{
-//			//見つかったら_tmpAdapterに格納
-//			_tmpAdapter = _adapters[i];
-//			break;
-//		}
-//	}
-//
-//#pragma endregion
-//
-//#pragma region デバイスの生成
-//
-//	//使用できるレベルを一つ一つ調べる
-//	D3D_FEATURE_LEVEL levels[] =
-//	{
-//		D3D_FEATURE_LEVEL_12_1,
-//		D3D_FEATURE_LEVEL_12_0,
-//		D3D_FEATURE_LEVEL_11_1,
-//		D3D_FEATURE_LEVEL_11_0,
+//		{-0.5f, -0.5f, 0.0f},//左下
+//		{-0.5f, +0.5f, 0.0f},//左上
+//		{+0.5f, -0.5f, 0.0f},//右下
 //	};
 //
-//	//フューチャーレベルの初期化
-//	D3D_FEATURE_LEVEL _featureLevel;
+//#pragma region 頂点バッファの確保
 //
-//	for (int i = 0; i < _countof(levels); i++)
+//	//頂点ヒープ設定構造体
+//	D3D12_HEAP_PROPERTIES heapprop{};//HeapProperties
+//	//GPUへのデータ転送用
+//	heapprop.Type = D3D12_HEAP_TYPE_UPLOAD;
+//
+//	//リソースの設定構造体
+//	D3D12_RESOURCE_DESC resdesc{};
+//
+//	//バックバッファーを使うのでBufferを指定する
+//	resdesc.Dimension =
+//		D3D12_RESOURCE_DIMENSION_BUFFER;
+//	//頂点情報が入る分のサイズを確保する
+//	resdesc.Width = sizeof(vertices);
+//	resdesc.Height = 1;
+//	resdesc.DepthOrArraySize = 1;
+//	resdesc.MipLevels = 1;
+//	resdesc.SampleDesc.Count = 1;
+//	resdesc.Layout =
+//		D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+//
+//	//GPUリソースの生成
+//	ID3D12Resource* vertBuff = nullptr;
+//
+//	//頂点バッファの生成
+//	result = _dev->CreateCommittedResource(
+//		&heapprop,           //ヒープ設定
+//		D3D12_HEAP_FLAG_NONE,
+//		&resdesc,            //リソース設定
+//		D3D12_RESOURCE_STATE_GENERIC_READ,
+//		nullptr,
+//		IID_PPV_ARGS(&vertBuff)
+//	);
+//
+//	/*頂点バッファーは、GPUに頂点情報を受け取るためのリソース(領域)*/
+//
+//#pragma endregion
+//
+//#pragma region 頂点情報のコピー
+//
+//	//GPU上のバッファに対応して仮想メモリを取得
+//	XMFLOAT3* _vertMap = nullptr;
+//
+//	//コピー開始
+//	//バッファーに頂点情報をコピーする
+//	result = vertBuff->Map(0, nullptr, (void**)&_vertMap);
+//
+//	//全頂点のデータに対して行う
+//	for (int i = 0; i < _countof(vertices); i++)
 //	{
-//		//採用したアダプターでデバイスを生成
-//		result = D3D12CreateDevice(_tmpAdapter, levels[i], IID_PPV_ARGS(&_dev));
+//		//座標のコピー
+//		_vertMap[i] = vertices[i];
+//	}
 //
-//		//デバイスを生成できたらループを抜ける
-//		if (result == S_OK)
-//		{
-//			_featureLevel = levels[i];
-//			break;
-//		}
+//	//コピー終了
+//	vertBuff->Unmap(0, nullptr);
+//
+//#pragma endregion
+//
+//#pragma region 頂点バッファービューの作成
+//
+//	//頂点バッファービューの作成
+//	D3D12_VERTEX_BUFFER_VIEW vbview{};
+//
+//	//バッファーの仮想アドレスの取得
+//	vbview.BufferLocation = vertBuff->GetGPUVirtualAddress();
+//	//全部で何バイトかを調べる
+//	vbview.SizeInBytes = sizeof(vertices);
+//	//1頂点当たりのバイト数を調べる
+//	vbview.StrideInBytes = sizeof(vertices[0]);
+//
+//	/*頂点バッファービューは、データの大きさを知らせるもの*/
+//
+//#pragma endregion
+//
+//#pragma region シェーダーファイルの読み込みとコンパイル
+//
+//	ID3DBlob* vsBlob = nullptr;   //頂点シェーダーオブジェクト
+//	ID3DBlob* psBlob = nullptr;   //ピクセルシェーダーオブジェクト
+//	ID3DBlob* errorBlob = nullptr;//エラーオブジェクト
+//
+//	//頂点シェーダーの読み込みとコンパイル
+//	result = D3DCompileFromFile(
+//		L"BasicVertexShader.hlsl",                      //シェーダー名指定
+//		nullptr,
+//		D3D_COMPILE_STANDARD_FILE_INCLUDE,              //インクルードを可能にする
+//		"VSmain",                                       //エントリーポイントの指定
+//		"vs_5_0",                                       //シェーダーモデルの指定
+//		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,//デバッグ用指定
+//		0,
+//		&vsBlob,
+//		&errorBlob
+//	);
+//
+//	//ピクセルシェーダーの読み込みとコンパイル
+//	result = D3DCompileFromFile(
+//		L"BasicPixcelShader.hlsl",                      //シェーダー名指定
+//		nullptr,
+//		D3D_COMPILE_STANDARD_FILE_INCLUDE,              //インクルードを可能にする
+//		"PSmain",                                       //エントリーポイントの指定
+//		"ps_5_0",                                       //シェーダーモデルの指定
+//		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,//デバッグ用指定
+//		0,
+//		&psBlob,
+//		&errorBlob
+//	);
+//
+//	//↓シェーダーの読み込みに失敗した場合に内容を表示する
+//	if (FAILED(result))
+//	{
+//		//errorBlobの中から、エラーの内容をstring型にコピーする
+//		string error;
+//		error.resize(errorBlob->GetBufferSize());
+//
+//		copy_n((char*)errorBlob->GetBufferPointer(),
+//			errorBlob->GetBufferSize(),
+//			error.begin());
+//		error += "\n";
+//
+//		//エラーの内容を出力ウィンドウに表示する
+//		OutputDebugStringA(error.c_str());
+//		exit(1);
 //	}
 //
 //#pragma endregion
 //
-//#pragma region コマンドリストとアロケータの生成
+//#pragma region 頂点レイアウト設定
 //
-//
-//	//コマンドアロケータの生成
-//	result = _dev->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-//		IID_PPV_ARGS(&_cmdAllocator));
-//
-//	//コマンドリストの生成
-//	result = _dev->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-//		_cmdAllocator, nullptr, IID_PPV_ARGS(&_cmdList));
-//
-//	/*コマンドアロケータはコマンドリストに格納する、
-//	　命令用のメモリを管理する。
-//	  命令が実行されるまでは、解放されることはない。*/
-//
-//	/*コマンドリストは描画命令用のインターフェース。
-//	　それを、コマンドアロケータに格納する。*/
+//	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+//	{
+//		{
+//			"POSITION",
+//			0,
+//			DXGI_FORMAT_R32G32B32_FLOAT,
+//			0,
+//			D3D12_APPEND_ALIGNED_ELEMENT,
+//			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+//			0,
+//		},
+//	};
 //
 //#pragma endregion
 //
-//#pragma region コマンドキューの生成
 //
-//	//コマンドキューの設定構造体
-//	D3D12_COMMAND_QUEUE_DESC cmdQueueDesc{};
-//	_dev->CreateCommandQueue(&cmdQueueDesc, IID_PPV_ARGS(&_cmdQueue));
+//#pragma region グラフィクスパイプラインの作成
+//
+//	//グラフィクスパイプラインの設定構造体
+//	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline{};
+//
+//	//シェーダーのセット--------------------------------------
+//	//頂点シェーダーをパイプラインに設定
+//	gpipeline.VS.pShaderBytecode = vsBlob->GetBufferPointer();
+//	gpipeline.VS.BytecodeLength =  vsBlob->GetBufferSize();
+//	//ピクセルシェーダーをパイプラインに設定
+//	gpipeline.PS.pShaderBytecode = psBlob->GetBufferPointer();
+//	gpipeline.PS.BytecodeLength =  psBlob->GetBufferSize();
+//	//--------------------------------------------------------
+//
+//	//サンプルマスクとラスタライズステートの設定--------------
+//	//デフォルトの設定
+//	gpipeline.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+//	//背面カリングを行わない
+//	gpipeline.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+//	//ポリゴン内を塗りつぶす
+//	gpipeline.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+//	//深度クリッピングを有効にする
+//	gpipeline.RasterizerState.DepthClipEnable = true;
+//	//--------------------------------------------------------
+//
+//	//ブレンドステートの設定----------------------------------
+//	//RGBA 全てのチャンネルを描画
+//	gpipeline.BlendState.RenderTarget[0].RenderTargetWriteMask =
+//		D3D12_COLOR_WRITE_ENABLE_ALL;
+//	//--------------------------------------------------------
+//
+//	//図形の形状の設定
+//	gpipeline.PrimitiveTopologyType = 
+//		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+//
+//	//描画対象の数
+//	gpipeline.NumRenderTargets = 1;
+//
+//	//0～1に正規化されたRGBA
+//	gpipeline.RTVFormats[0] =
+//		DXGI_FORMAT_R8G8B8A8_UNORM;
+//
+//	//1ピクセルにつき1回のサンプリング
+//	gpipeline.SampleDesc.Count = 1;
+//
+//
+//#pragma region ルートシグネチャの生成
+//
+//	//ルートシグネチャの宣言
+//	ID3D12RootSignature* rootsignature;
+//
+//	//ルートシグネチャの設定構造体
+//	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+//
+//	//頂点情報の存在を伝える
+//	rootSignatureDesc.Flags =
+//		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+//
+//	//オブジェクトを確保する
+//	ID3DBlob* rootSigBlob = nullptr;
+//
+//	//バイナリコード(ソースコードを機械語に変換するもの)の作成
+//	result = D3D12SerializeRootSignature(
+//		&rootSignatureDesc,            //ルートシグネチャの設定
+//		D3D_ROOT_SIGNATURE_VERSION_1_0,//ルートシグネチャのバージョン
+//		&rootSigBlob, 				   //シェーダーの時と同じ
+//		&errorBlob);				   //エラーの時はここにメッセージが入る
+//
+//	//ルートシグネチャの生成
+//	result = _dev->CreateRootSignature(
+//		0,
+//		rootSigBlob->GetBufferPointer(),
+//		rootSigBlob->GetBufferSize(),
+//		IID_PPV_ARGS(&rootsignature)
+//	);
+//
+//	//パイプラインにルートシグネチャをセット
+//	gpipeline.pRootSignature = rootsignature;
 //
 //#pragma endregion
 //
-//#pragma region スワップチェーンの生成
-//
-//	//スワップチェーンの設定構造体
-//	DXGI_SWAP_CHAIN_DESC1 swapchainDesc{};
-//
-//	//↓数値を直接入れるところをおしゃぶってるよ
-//	swapchainDesc.Width = window_width;
-//	swapchainDesc.Height = window_height;
-//
-//	swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;       //色情報の書式
-//	swapchainDesc.SampleDesc.Count = 1;                      //サンプリングをしない→1
-//	swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;      //バックバッファを使用
-//	swapchainDesc.BufferCount = 2;                           //バックバッファをしようするため2
-//	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;//フリップ後は破棄する
-//	swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-//
-//	//設定の反映
-//	_dxgiFactory->CreateSwapChainForHwnd(
-//		_cmdQueue,
-//		hwnd,
-//		&swapchainDesc,
-//		nullptr,
-//		nullptr,
-//		(IDXGISwapChain1**)&_swapchain
+//	//グラフィクスパイプラインの生成
+//	ID3D12PipelineState* pipelinestate = nullptr;
+//	result = _dev->CreateGraphicsPipelineState(
+//		&gpipeline,
+//		IID_PPV_ARGS(&pipelinestate)
 //	);
 //
 //#pragma endregion
 //
-//#pragma region レンダーターゲットビューの生成
-//
-//	//レンダーターゲットビューの設定構造体
-//	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
-//
-//	//レンダーターゲットビューを指定
-//	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-//
-//	//バックバッファを使うため、表と裏の二つ
-//	heapDesc.NumDescriptors = 2;
-//
-//	//設定の反映
-//	_dev->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&_rtvHeaps));
-//
-//
-//	//----------------------------------------
-//
-//	//表と裏の二つ分について
-//	vector<ID3D12Resource*> _backBuffers(2);
-//
-//	for (int i = 0; i < 2; i++)
-//	{
-//		//スワップチェーンからバッファを取得
-//		result = _swapchain->GetBuffer(i, IID_PPV_ARGS(&_backBuffers[i]));
-//
-//		//ディスクリプタヒープの先頭ハンドルを取得
-//		D3D12_CPU_DESCRIPTOR_HANDLE _handle =
-//			_rtvHeaps->GetCPUDescriptorHandleForHeapStart();
-//
-//		//表と裏でポインターを1つずらす
-//		_handle.ptr += i * _dev->GetDescriptorHandleIncrementSize(heapDesc.Type);
-//
-//		//レンダーターゲットビューの生成
-//		_dev->CreateRenderTargetView(
-//			_backBuffers[i],
-//			nullptr,
-//			_handle
-//		);
-//	}
-//
-//	//----------------------------------------
-//
-//	/*バックバッファに描画結果を書き込むための仕組み*/
-//
-//	/*ディスクリプタは、扱うデータの種類や、保存場所、サイズなどの情報。*/
-//	/*ディスクリプタヒープは、それらディスクリプタを保存する配列。*/
 //
 //#pragma endregion
-//
-//#pragma region フェンスの生成
-//
-//	ID3D12Fence* _fence = nullptr;
-//
-//	UINT64 fenceVal = 0;
-//
-//	//フェンスの生成
-//	result = _dev->CreateFence(fenceVal, D3D12_FENCE_FLAG_NONE,
-//		IID_PPV_ARGS(&_fence));
-//
-//#pragma endregion
+
 
 	//メッセージ
 	MSG msg{};
@@ -279,96 +349,50 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		dxManager->Start();
 
-//#pragma region リソースバリア変更復帰
+		_create2D->Draw2D();
+
+		//今回追加
+//#pragma region 描画コマンド
 //
-//		//バックバッファの番号を取得(表と裏しかないので0or1)
-//		UINT _bbIndex = _swapchain->GetCurrentBackBufferIndex();
+//		//パイプラインステートの設定
+//		_cmdList->SetPipelineState(pipelinestate);
 //
-//		//リソースバリアの設定構造体
-//		D3D12_RESOURCE_BARRIER barrierDesc{};
+//		//ビューポートの設定----------------------------------
+//		D3D12_VIEWPORT viewport{};
+//		viewport.Width = window_width;
+//		viewport.Height = window_height;
+//		viewport.TopLeftX = 0;
+//		viewport.TopLeftY = 0;
+//		viewport.MinDepth = 0.0f;
+//		viewport.MaxDepth = 1.0f;
+//		_cmdList->RSSetViewports(1, &viewport);
+//		//----------------------------------------------------
 //
-//		//バックバッファから指定
-//		barrierDesc.Transition.pResource = _backBuffers[_bbIndex];
+//		//シザー矩形の設定------------------------------------
+//		D3D12_RECT scissorret{};
+//		scissorret.left = 0;
+//		scissorret.right = scissorret.left + window_width;
+//		scissorret.top = 0;
+//		scissorret.bottom = scissorret.top + window_height;
+//		_cmdList->RSSetScissorRects(1, &scissorret);
+//		//----------------------------------------------------
 //
-//		//表示してる方から指定
-//		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+//		//ルートシグネチャの設定
+//		_cmdList->SetGraphicsRootSignature(rootsignature);
 //
-//		//この先からレンダーターゲット状態
-//		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+//		//プリミティブ形状の設定
+//		_cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 //
-//		//バリアの実行
-//		_cmdList->ResourceBarrier(1, &barrierDesc);
+//		//頂点バッファの設定
+//		_cmdList->IASetVertexBuffers(0, 1, &vbview);
+//
+//		//描画
+//		_cmdList->DrawInstanced(3, 1, 0, 0);
 //
 //#pragma endregion
-//
-//#pragma region 画面のクリア
-//
-//		//レンダーターゲットビューの先頭アドレスを取得
-//		D3D12_CPU_DESCRIPTOR_HANDLE _rtvH =
-//			_rtvHeaps->GetCPUDescriptorHandleForHeapStart();
-//
-//		_rtvH.ptr += _bbIndex * _dev->GetDescriptorHandleIncrementSize(heapDesc.Type);
-//
-//		//(レンダーターゲットビューの数、rtvHeapsの先頭アドレス,マルチレンダーターゲット,深度)
-//		_cmdList->OMSetRenderTargets(1, &_rtvH, false, nullptr);
-//
-//		//画面の色設定
-//		float clearColor[] = { 0.1f,0.25f,0.5f,0.0f };
-//
-//		//画面のクリア
-//		_cmdList->ClearRenderTargetView(_rtvH, clearColor, 0, nullptr);
-//
-//#pragma endregion
 
-#pragma region 描画コマンド
-
-
-
-#pragma endregion
 
 		dxManager->End();
-
-//#pragma region コマンドのフラッシュ
-//
-//		//リソースバリアを戻す
-//		//描画状態から...
-//		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-//		//表示状態に戻す
-//		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-//
-//		//実行
-//		_cmdList->ResourceBarrier(1, &barrierDesc);
-//
-//		//命令のクローズ
-//		_cmdList->Close();
-//
-//		//コマンドリストの実行
-//		ID3D12CommandList* _cmdLists[] = { _cmdList };//コマンドリストの配列
-//		_cmdQueue->ExecuteCommandLists(1, _cmdLists);
-//
-//		//コマンドリストの実行が終了するのを待つ
-//		_cmdQueue->Signal(_fence, ++fenceVal);
-//
-//		//フェンスの呼び出し
-//		if (_fence->GetCompletedValue() != fenceVal)
-//		{
-//			//イベントハンドルの取得
-//			HANDLE event = CreateEvent(nullptr, false, false, nullptr);
-//
-//			_fence->SetEventOnCompletion(fenceVal, event);
-//			WaitForSingleObject(event, INFINITE);
-//			CloseHandle(event);
-//		}
-//
-//		//コマンドのクリア
-//		_cmdAllocator->Reset();
-//		//再びコマンドリストをため込む準備
-//		_cmdList->Reset(_cmdAllocator, nullptr);
-//		//バックバッファのフリップ
-//		_swapchain->Present(1, 0);
-//
-//#pragma endregion
-
 
 #pragma endregion
 

@@ -2,6 +2,7 @@
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include"dxgi1_6.h"
 #include <vector>
 
 #pragma comment(lib, "d3d12.lib")
@@ -27,6 +28,12 @@ public:
 	//更新終了
 	void End();
 
+	//デバイス受け取り用
+	ID3D12Device* GetDev() const;
+
+	//コマンドリスト受け取り用
+	ID3D12GraphicsCommandList* getCmdList() const;
+
 private:
 
 	HRESULT result;
@@ -45,6 +52,7 @@ private:
 
 	//レンダーターゲットビューの設定構造体
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
+	//↓元は(2)だったけれども使ったらエラーになった。
 	vector<ID3D12Resource*> _backBuffers{2};
 	//リソースバリアの設定構造体
 	D3D12_RESOURCE_BARRIER barrierDesc{};

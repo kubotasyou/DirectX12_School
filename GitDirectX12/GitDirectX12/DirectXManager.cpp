@@ -280,3 +280,13 @@ void DirectXManager::End()
 
 #pragma endregion
 }
+
+ID3D12Device * DirectXManager::GetDev() const
+{
+	return _dev;
+}
+
+ID3D12GraphicsCommandList * DirectXManager::getCmdList() const
+{
+	return _cmdList;
+}

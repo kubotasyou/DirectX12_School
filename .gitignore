@@ -360,3 +360,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+#自分で追加した・Brow.VC.dbを追加
+GitDirectX12/.vs/GitDirectX12/v15/*.db
