@@ -1,4 +1,3 @@
-﻿  Create2DFigure.cpp
-c:\users\kpc-018a1434\desktop\仮まとめファイル\3年生\directx\gitdirectx_shcool\gitdirectx12\gitdirectx12\create2dfigure.cpp(296): warning C4244: '=': 'const int' から 'FLOAT' への変換です。データが失われる可能性があります。
-c:\users\kpc-018a1434\desktop\仮まとめファイル\3年生\directx\gitdirectx_shcool\gitdirectx12\gitdirectx12\create2dfigure.cpp(297): warning C4244: '=': 'const int' から 'FLOAT' への変換です。データが失われる可能性があります。
+﻿  DirectXManager.cpp
+c:\users\kpc-018a1434\desktop\仮まとめファイル\3年生\directx\gitdirectx_shcool\gitdirectx12\gitdirectx12\directxmanager.cpp(36): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
   GitDirectX12.vcxproj -> C:\Users\KPC-018A1434\Desktop\仮まとめファイル\3年生\DirectX\GitDirectX_Shcool\GitDirectX12\Debug\GitDirectX12.exe

@@ -10,6 +10,11 @@ using namespace DirectX;
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "d3d12.lib")
 
+//定数バッファー用データ構造体
+struct ConstBufferData
+{
+	XMFLOAT4 color;//色(RGBA)
+};
 
 class Create2DFigure
 {
@@ -26,11 +31,17 @@ public:
 	//頂点バッファの作成
 	void CreateVertBuff();
 
+	//定数バッファの作成
+	void CreateConstBuff();
+
+	//インデックスバッファの作成
+	void CreateIndexBuff();
+
+	//多角形を作る
+	void CreateFigure(float Radius);
+
 	//シェーダーファイルの読み込み
 	HRESULT ReadShaderFile();
-
-	//頂点レイアウト設定
-	void InputLayout();
 
 	//グラフィックパイプラインの初期化
 	void InitGraphicsPipeLine();
@@ -52,6 +63,17 @@ private:
 	ID3D12RootSignature* rootsignature;
 	//頂点バッファービューの作成
 	D3D12_VERTEX_BUFFER_VIEW vbview{};
+	//頂点・インデックスのリソースの設定構造体
+	D3D12_RESOURCE_DESC resdesc{};
+	//頂点・インデックスのヒープ設定構造体
+	D3D12_HEAP_PROPERTIES heapprop{};//HeapProperties
+	//インデックスバッファービューの作成
+	D3D12_INDEX_BUFFER_VIEW ibView{};
+
+	//定数バッファに送るデータ
+	ConstBufferData* cbData = nullptr;
+	//定数バッファー用のディスクリプタヒープ
+	ID3D12DescriptorHeap* basicDescHeap = nullptr;
 
 
 	//ウィンドウサイズ

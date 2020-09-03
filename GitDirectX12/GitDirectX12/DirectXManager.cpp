@@ -10,6 +10,7 @@ DirectXManager::DirectXManager()
 
 DirectXManager::~DirectXManager()
 {
+	delete (input);
 }
 
 void DirectXManager::Initialize(HWND hwnd)
@@ -192,16 +193,21 @@ void DirectXManager::Initialize(HWND hwnd)
 		IID_PPV_ARGS(&_fence));
 
 #pragma endregion
+
+	//画面の色の設定
+	r = 0.1f;
+	g = 0.25f;
+	b = 0.5f;
+	a = 0.0f;
 }
 
 void DirectXManager::Start()
 {
+
 #pragma region リソースバリア変更復帰
 
 	//バックバッファの番号を取得(表と裏しかないので0or1)
 	UINT _bbIndex = _swapchain->GetCurrentBackBufferIndex();
-
-	
 
 	//バックバッファから指定
 	barrierDesc.Transition.pResource = _backBuffers[_bbIndex];
@@ -229,7 +235,7 @@ void DirectXManager::Start()
 	_cmdList->OMSetRenderTargets(1, &_rtvH, false, nullptr);
 
 	//画面の色設定
-	float clearColor[] = { 0.1f,0.25f,0.5f,0.0f };
+	float clearColor[] = { r ,g ,b , a };
 
 	//画面のクリア
 	_cmdList->ClearRenderTargetView(_rtvH, clearColor, 0, nullptr);

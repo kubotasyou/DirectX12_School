@@ -5,6 +5,8 @@
 #include"dxgi1_6.h"
 #include <vector>
 
+#include "Input.h"
+
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 
@@ -49,6 +51,8 @@ private:
 
 	UINT64 fenceVal = 0;
 
+	//画面の色
+	float r, g, b, a = 0.0f;
 
 	//レンダーターゲットビューの設定構造体
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc{};
@@ -60,5 +64,8 @@ private:
 	//ウィンドウサイズ
 	const int window_width = 1280;
 	const int window_height = 720;
+
+
+	Input* input;
 };
 
